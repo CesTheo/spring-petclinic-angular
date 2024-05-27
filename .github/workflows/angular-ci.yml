@@ -1,48 +1,48 @@
-name: deploy Angular
+# name: deploy Angular
 
-on: [push]
+# on: [push]
       
-permissions:
-  id-token: write
-  contents: read
+# permissions:
+#   id-token: write
+#   contents: read
 
-env:
-  AZURE_WEBAPP_NAME: app-tmaudet-02 # Remplacez par le nom de votre application Azure Web App
-  AZURE_WEBAPP_PACKAGE_PATH: './'   # Répertoire de build de l'application Angular
-  NODE_VERSION: '20.x'                # Version de Node.js à utiliser
+# env:
+#   AZURE_WEBAPP_NAME: app-tmaudet-02 # Remplacez par le nom de votre application Azure Web App
+#   AZURE_WEBAPP_PACKAGE_PATH: './'   # Répertoire de build de l'application Angular
+#   NODE_VERSION: '20.x'                # Version de Node.js à utiliser
 
 
-jobs:
-  build-and-deploy:
-    runs-on: ubuntu-latest
-    steps:
-    - name: 'Checkout GitHub Action'
-      uses: actions/checkout@main
+# jobs:
+#   build-and-deploy:
+#     runs-on: ubuntu-latest
+#     steps:
+#     - name: 'Checkout GitHub Action'
+#       uses: actions/checkout@main
 
-    - uses: azure/login@v1
-      with:
-        client-id: ${{ secrets.AZURE_CLIENT_ID }}
-        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+#     - uses: azure/login@v1
+#       with:
+#         client-id: ${{ secrets.AZURE_CLIENT_ID }}
+#         tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+#         subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-    - name: Setup Node 20
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20.x'
+#     - name: Setup Node 20
+#       uses: actions/setup-node@v4
+#       with:
+#         node-version: '20.x'
 
-    - name: 'npm install, build, and test'
-      run: |
-        npm install
-        npm run build --if-present --no-warnings
-      working-directory: '.'
+#     - name: 'npm install, build, and test'
+#       run: |
+#         npm install
+#         npm run build --if-present --no-warnings
+#       working-directory: '.'
 
-    # deploy web app using Azure credentials
-    - uses: azure/webapps-deploy@v3
-      with:
-        app-name: app-tmaudet-02
-        package: '.'
+#     # deploy web app using Azure credentials
+#     - uses: azure/webapps-deploy@v3
+#       with:
+#         app-name: app-tmaudet-02
+#         package: '.'
 
-    # Azure logout
-    - name: logout
-      run: |
-        az logout
+#     # Azure logout
+#     - name: logout
+#       run: |
+#         az logout
