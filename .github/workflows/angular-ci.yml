@@ -1,38 +1,129 @@
-name: Angular CI
+name: deploy
 
-on:
-  push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
+on: [push]
+      
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AZURE_WEBAPP_NAME: app-tmaudet-02 # Remplacez par le nom de votre application Azure Web App
+  AZURE_WEBAPP_PACKAGE_PATH: './'   # Répertoire de build de l'application Angular
+  NODE_VERSION: '20.x'                # Version de Node.js à utiliser
+
 
 jobs:
-  build:
-
+  build-and-deploy:
     runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        node-version: [16.x, 18.x, 20.x]
-        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
-
     steps:
-    - uses: actions/checkout@v2
+    # checkout the repo
+    - name: 'Checkout GitHub Action'
+      uses: actions/checkout@main
 
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v2
+    - uses: azure/login@v1
       with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-    - name : Install Dependencies
-      run: npm ci
+    - name: Setup Node 20
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
 
-    - name: Build
-      run: npm run build --if-present -- --configuration production
+    - name: 'npm install, build, and test'
+      run: |
+        npm install
+        npm run build --if-present --no-warnings
+      working-directory: '.'
 
-    - name: Lint
-      run: npm run lint
+    # deploy web app using Azure credentials
+    - uses: azure/webapps-deploy@v3
+      with:
+        app-name: app-tmaudet-02
+        package: '.'
 
-    - name: Test
-      run: npm run test-headless
+    # Azure logout
+    - name: logout
+      run: |
+        az logout
+
+# jobs:
+#   build-and-deploy:
+#     runs-on: ubuntu-latest
+#     steps:
+      
+# name: 'Checkout GitHub Action'
+# uses: actions/checkout@main
+
+      
+# uses: azure/login@v1
+# with:
+#   client-id: ${{ secrets.AZURE_CLIENT_ID }}
+#   tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+#   subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      
+# name: Setup Node.js ${{ env.NODE_VERSION }}
+# uses: actions/setup-node@v2
+#   with:
+#     node-version: ${{ env.NODE_VERSION }}
+
+      
+# name: Install dependencies and build Angular app
+#   run: |
+#     npm install
+#     npm run build --prod
+#   working-directory: src  # Assurez-vous de spécifier le bon répertoire si nécessaire
+
+      
+# name: Deploy to Azure Web App
+#   uses: azure/webapps-deploy@v3
+#   with:
+#     app-name: ${{ env.AZURE_WEBAPP_NAME }}
+#     package: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
+
+      
+# name: Azure Logout
+#   run: az logout
+
+
+
+
+  
+  
+  # jobs:
+  #   build-and-deploy:
+  #     runs-on: ubuntu-latest
+  #     steps:
+  #     # checkout the repo
+  #     - name: 'Checkout GitHub Action'
+  #       uses: actions/checkout@main
+  
+  #     - uses: azure/login@v1
+  #       with:
+  #         client-id: ${{ secrets.AZURE_CLIENT_ID }}
+  #         tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+  #         subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+  
+  #     - name: Setup Node 20
+  #       uses: actions/setup-node@v4
+  #       with:
+  #         node-version: '20'
+  
+  #     - name: 'npm install, build, and test'
+  #       run: |
+  #         npm install
+  #         npm run build --if-present --no-warnings
+  #       working-directory: '.'
+  
+  #     # deploy web app using Azure credentials
+  #     - uses: azure/webapps-deploy@v3
+  #       with:
+  #         app-name: app-tmaudet-01
+  #         package: '.'
+  
+  #     # Azure logout
+  #     - name: logout
+  #       run: |
+  #         az logout
